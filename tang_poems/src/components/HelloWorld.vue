@@ -1,50 +1,12 @@
 <template>
-  <div class="page-tabbar">
-    <div class="page-wrap">
-      <div class="page-title">Tabbar</div>
-      <div>
-        <mt-cell class="page-part" title="当前选中" :value="selected" />
-      </div>
-
-      <mt-tab-container class="page-tabbar-container" v-model="selected">
-        <mt-tab-container-item id="外卖">
-          <mt-cell v-for="n in 10" :key="n"  :title="'餐厅 ' + n" />
-        </mt-tab-container-item>
-        <mt-tab-container-item id="订单">
-          <mt-cell v-for="n in 5" :key="n" :title="'订单 ' + n" />
-        </mt-tab-container-item>
-        <mt-tab-container-item id="发现">
-          <mt-cell v-for="n in 7" :key="n" :title="'发现 ' + n" />
-        </mt-tab-container-item>
-        <mt-tab-container-item id="我的">
-          <div class="page-part">
-            <mt-cell v-for="n in 12" :key="n" :title="'我的 ' + n" />
-          </div>
-          <router-link to="/">
-            <mt-button type="danger" size="large">退出</mt-button>
-          </router-link>
-        </mt-tab-container-item>
-      </mt-tab-container>
-    </div>
-
-    <mt-tabbar v-model="selected" fixed>
-      <mt-tab-item id="外卖">
-        <img slot="icon" src="../assets/logo.png">
-        外卖
-      </mt-tab-item>
-      <mt-tab-item id="订单">
-        <img slot="icon" src="../assets/logo.png">
-        订单
-      </mt-tab-item>
-      <mt-tab-item id="发现">
-        <img slot="icon" src="../assets/logo.png">
-        发现
-      </mt-tab-item>
-      <mt-tab-item id="我的">
-        <img slot="icon" src="../assets/logo.png">
-        我的
-      </mt-tab-item>
-    </mt-tabbar>
+  <div class="hello">
+    <h1>{{msg}}</h1>
+    <hr>
+    <h2>{{data.title}}</h2>
+    <h3 @click="getAuthorDesc(data.authors)">-- {{data.authors}} --</h3>
+    <h4 v-for="(text, index) in data.content" :key="index">{{text}}</h4>
+    <hr>
+    <h4>{{desc}}</h4>
   </div>
 </template>
 
@@ -53,21 +15,36 @@ export default {
   name: 'home',
   data () {
     return {
-      selected: '外卖'
+      msg: '每日一句',
+      data: [],
+      desc: ''
     }
+  },
+  methods: {
+    getDailyRound () {
+      this.$http.get('https://api.apiopen.top/recommendPoetry').then((res) => {
+        this.data = res.data.result
+        this.data.content = this.data.content.split('|')
+      }).catch((res) => {
+        console.log(res)
+      })
+    },
+    getAuthorDesc (author) {
+      this.$http.get('https://api.apiopen.top/searchAuthors?name=' + author).then((res) => {
+        console.log(res)
+        this.desc = res.data.result[0].desc
+      }).catch((res) => {
+        console.log(res)
+      })
+    }
+  },
+  mounted () {
+    this.getDailyRound()
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .page-tabbar {
-    overflow: hidden;
-    height: 100vh;
-  }
-  .page-wrap {
-    overflow: auto;
-    height: 100%;
-    padding-bottom: 100px;
-  }
+
 </style>
