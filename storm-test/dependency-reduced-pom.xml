@@ -60,7 +60,7 @@
               <transformers>
                 <transformer />
                 <transformer>
-                  <mainClass>com.akazam.test.trident.WorkCount</mainClass>
+                  <mainClass>com.akazam.test.trident.pvuv.TridentPVUV</mainClass>
                 </transformer>
               </transformers>
             </configuration>
