@@ -2,3 +2,9 @@
 storm-test/.idea/
 storm-test/target/
 storm-test/logs/
+flink/.idea/
+flink/target/
+live_data/target/
+live_data/.idea/
+scala_word_count/target/
+scala_word_count/.idea/
