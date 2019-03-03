@@ -9,8 +9,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer09;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer08;
 import org.apache.flink.streaming.connectors.wikiedits.WikipediaEditEvent;
 import org.apache.flink.streaming.connectors.wikiedits.WikipediaEditsSource;
 
@@ -44,7 +43,7 @@ public class WikipediaAnalysis {
 
         // 数据写入kafka，kafka版本是0.11
         result.map((MapFunction<Tuple2<String, Long>, String>) stringLongTuple2 -> stringLongTuple2.toString())
-                .addSink(new FlinkKafkaProducer09<>("192.168.33.212:9092", "wiki-result", new SimpleStringSchema()));
+                .addSink(new FlinkKafkaProducer08<String>("192.168.33.212:9092", "wiki-result", new SimpleStringSchema()));
 
 //        result.print();
 
