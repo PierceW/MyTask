@@ -60,7 +60,7 @@
               <transformers>
                 <transformer />
                 <transformer>
-                  <mainClass>com.alex.test.wikipedia.WikipediaAnalysis</mainClass>
+                  <mainClass>com.alex.test.student.FlinkSinkToES6</mainClass>
                 </transformer>
               </transformers>
             </configuration>
