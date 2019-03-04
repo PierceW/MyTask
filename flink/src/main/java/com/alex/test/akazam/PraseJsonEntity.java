@@ -1,5 +1,7 @@
 package com.alex.test.akazam;
 
+import com.alibaba.fastjson.JSONObject;
+
 import java.util.Map;
 
 /**
@@ -12,6 +14,15 @@ import java.util.Map;
 public class PraseJsonEntity {
     String name;
     Map<String, Object> objectMap;
+
+    public PraseJsonEntity(String name, JSONObject object) {
+        this.name = name;
+        this.objectMap = object;
+    }
+
+    public PraseJsonEntity() {
+
+    }
 
     public String getName() {
         return name;

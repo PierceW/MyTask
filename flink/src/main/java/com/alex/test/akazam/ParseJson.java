@@ -1,18 +1,23 @@
 package com.alex.test.akazam;
 
+import com.alex.test.student.RestClientFactoryImpl;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.ActionRequestFailureHandler;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
+import org.apache.flink.streaming.connectors.elasticsearch.util.RetryRejectedExecutionFailureHandler;
+import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.elasticsearch6.RestClientFactory;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.util.Collector;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -40,42 +45,52 @@ public class ParseJson {
 
         env.getConfig().setGlobalJobParameters(parameterTool);
 
-        Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", "192.168.33.212:9092");
-        properties.setProperty("zookeeper.connect", "192.168.33.212:2181");
-        properties.setProperty("group.id", "test");
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "192.168.33.212:9092");
+        props.put("zookeeper.connect", "192.168.33.212:2181");
+        props.put("group.id", "student-group-1");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("auto.offset.reset", "earliest");
 
-        FlinkKafkaConsumer011<String> myConsumer = new FlinkKafkaConsumer011<>("wiki-result", new SimpleStringSchema(), properties);
-        myConsumer.setStartFromEarliest();
-//        myConsumer.setStartFromLatest();
-
-
-        // You can also specify the exact offsets the consumer should start from for each partition:
-        // 指定消费情况
-//        Map<KafkaTopicPartition, Long> specificStartOffsets = new HashMap<>();
-//        specificStartOffsets.put(new KafkaTopicPartition("myTopic", 0), 23L);
-//        specificStartOffsets.put(new KafkaTopicPartition("myTopic", 1), 31L);
-//        specificStartOffsets.put(new KafkaTopicPartition("myTopic", 2), 43L);
-//        myConsumer.setStartFromSpecificOffsets(specificStartOffsets);
-
+        FlinkKafkaConsumer011<String> myConsumer = new FlinkKafkaConsumer011<>("wiki-result", new SimpleStringSchema(), props);
 
         DataStream<PraseJsonEntity> stream = env.addSource(myConsumer).flatMap(new ParseJSON());
 
         // 数据写入ES
-        Map<String, String> config = new HashMap<>();
-        // This instructs the sink to emit after every element, otherwise they would be buffered
-        config.put("bulk.flush.max.actions", "10");
-        config.put("cluster.name", "elasticsearch");
+        List<HttpHost> esHttphost = new ArrayList<>();
+        esHttphost.add(new HttpHost("192.168.33.212", 9200, "http"));
 
-        List<InetSocketAddress> transports = new ArrayList<>();
-        transports.add(new InetSocketAddress(InetAddress.getByName("192.168.33.212"), 9300));
+        ElasticsearchSink.Builder<PraseJsonEntity> esSinkBuilder = new ElasticsearchSink.Builder<>(
+                esHttphost,
+                new ElasticsearchSinkFunction<PraseJsonEntity>() {
 
-//        stream.addSink(esSinkBuilder.build());
+                    public IndexRequest createIndexRequest(PraseJsonEntity element) {
+                        Map<String, Object> json = element.getObjectMap();
 
-//        stream.addSink(new ElasticsearchSink<PraseJsonEntity>(config, transports, new ParseJSON()));
+                        return Requests.indexRequest()
+                                .index(element.getName())
+                                .type(element.getName())
+                                .source(json);
+                    }
 
-        stream.print();
+                    @Override
+                    public void process(PraseJsonEntity element, RuntimeContext ctx, RequestIndexer indexer) {
+                        indexer.add(createIndexRequest(element));
+                    }
+                }
+        );
 
+        esSinkBuilder.setBulkFlushMaxActions(1);
+//        esSinkBuilder.setRestClientFactory(
+//                restClientBuilder -> {
+//                    restClientBuilder.setDefaultHeaders()
+//                }
+//        );
+        esSinkBuilder.setRestClientFactory(new RestClientFactoryImpl());
+        esSinkBuilder.setFailureHandler(new RetryRejectedExecutionFailureHandler());
+
+        stream.addSink((SinkFunction<PraseJsonEntity>) esSinkBuilder);
         env.execute("flink learning connectors es6");
     }
 
@@ -110,12 +125,14 @@ public class ParseJson {
     public static class ParseJSON implements FlatMapFunction<String, PraseJsonEntity> {
 
         @Override
-        public void flatMap(String s, Collector<PraseJsonEntity> collector) throws Exception {
-            PraseJsonEntity jsonEntity = new PraseJsonEntity();
+        public void flatMap(String element, Collector<PraseJsonEntity> collector) throws Exception {
             /**
              * 需要解析string数据,把数据放到entity里面
              */
-            collector.collect(jsonEntity);
+            List<PraseJsonEntity> entityList = JsonUtil.parseJson(element);
+            for (PraseJsonEntity jsonEntity : entityList) {
+                collector.collect(jsonEntity);
+            }
         }
     }
 
