@@ -7,7 +7,6 @@ import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.ActionRequestFailureHandler;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
@@ -24,8 +23,6 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClientBuilder;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.*;
 
 /**
@@ -53,9 +50,9 @@ public class ParseJson {
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("auto.offset.reset", "earliest");
 
-        FlinkKafkaConsumer011<String> myConsumer = new FlinkKafkaConsumer011<>("wiki-result", new SimpleStringSchema(), props);
+        FlinkKafkaConsumer011<String> myConsumer = new FlinkKafkaConsumer011<>("pub_visit_topic001", new SimpleStringSchema(), props);
 
-        DataStream<PraseJsonEntity> stream = env.addSource(myConsumer).flatMap(new ParseJSON());
+        DataStream<PraseJsonEntity> stream = env.addSource(myConsumer).flatMap(new ParseJSON()).setParallelism(5);
 
         // 数据写入ES
         List<HttpHost> esHttphost = new ArrayList<>();
@@ -67,10 +64,12 @@ public class ParseJson {
 
                     public IndexRequest createIndexRequest(PraseJsonEntity element) {
                         Map<String, Object> json = element.getObjectMap();
+                        json.put("timestamp", System.currentTimeMillis());
+                        json.put("es_timestamp", new Date());
 
                         return Requests.indexRequest()
-                                .index(element.getName())
-                                .type(element.getName())
+                                .index(element.getName().toLowerCase())
+                                .type(element.getName().toLowerCase())
                                 .source(json);
                     }
 
@@ -90,7 +89,7 @@ public class ParseJson {
         esSinkBuilder.setRestClientFactory(new RestClientFactoryImpl());
         esSinkBuilder.setFailureHandler(new RetryRejectedExecutionFailureHandler());
 
-        stream.addSink((SinkFunction<PraseJsonEntity>) esSinkBuilder);
+        stream.addSink(esSinkBuilder.build()).setParallelism(5);
         env.execute("flink learning connectors es6");
     }
 
