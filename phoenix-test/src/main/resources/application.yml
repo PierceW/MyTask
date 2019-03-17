@@ -1,0 +1,8 @@
+phoenix:
+  enable: true
+  url: jdbc:phoenix:192.168.33.212
+  type: com.alibaba.druid.pool.DruidDataSource
+  driver-class-name: org.apache.phoenix.jdbc.PhoenixDriver
+  username: //phoenix的用户名默认为空
+  password: //phoenix的密码默认为空
+  default-auto-commit: true
