@@ -1,4 +1,4 @@
-package com.alex.phoenix;
+package com.cmcc.ks;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class PhoenixTestApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PhoenixTestApplication.class);
+        SpringApplication.run(PhoenixTestApplication.class, args);
     }
+
 }

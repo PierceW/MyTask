@@ -56,7 +56,7 @@ public class ParseJson {
 
         // 数据写入ES
         List<HttpHost> esHttphost = new ArrayList<>();
-        esHttphost.add(new HttpHost("192.168.33.212", 9200, "http"));
+        esHttphost.add(new HttpHost("192.168.33.20", 9200, "http"));
 
         ElasticsearchSink.Builder<PraseJsonEntity> esSinkBuilder = new ElasticsearchSink.Builder<>(
                 esHttphost,
@@ -134,6 +134,5 @@ public class ParseJson {
             }
         }
     }
-
 
 }

@@ -1,4 +1,4 @@
-package com.alex.phoenix.configuratioin;
+package com.yks.phoenix.configuration;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,26 +10,31 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
-@Configuration
-public class PhoenixConfiguration {
+/**
+ * Created by cgt on 17-12-6.
+ */
+//@Configuration
+public class PhoenixDataSource {
 
     @Autowired
     private Environment env;
 
-    @Bean(name = "phoenixDataSource")
-    @Qualifier("phoenixDataSource")
+    @Bean(name = "phoenixJdbcDataSource")
+    @Qualifier("phoenixJdbcDataSource")
     public DataSource dataSource() {
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setUrl(env.getProperty("phoenix.url"));
         dataSource.setDriverClassName(env.getProperty("phoenix.driver-class-name"));
-        dataSource.setUsername(env.getProperty("phoenix.username"));
-        dataSource.setPassword(env.getProperty("phoenix.password"));
+        dataSource.setUsername(env.getProperty("phoenix.username"));//phoenix的用户名默认为空
+        dataSource.setPassword(env.getProperty("phoenix.password"));//phoenix的密码默认为空
         dataSource.setDefaultAutoCommit(Boolean.valueOf(env.getProperty("phoenix.default-auto-commit")));
+//        dataSource.setConnectionProperties("phoenix.schema.isNamespaceMappingEnabled=true");
+
         return dataSource;
     }
 
-    @Bean("phoenixJdbcTemplate")
-    public JdbcTemplate phoenixJdbcTemplate(@Qualifier("phoenixDataSource") DataSource dataSource) {
+    @Bean(name = "phoenixJdbcTemplate")
+    public JdbcTemplate phoenixJdbcTemplate(@Qualifier("phoenixJdbcDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 }
