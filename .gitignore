@@ -8,3 +8,5 @@ live_data/target/
 live_data/.idea/
 scala_word_count/target/
 scala_word_count/.idea/
+spring cloud/eureka-client/.idea/
+spring cloud/eureka-client/target/
