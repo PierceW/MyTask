@@ -10,3 +10,6 @@ scala_word_count/target/
 scala_word_count/.idea/
 spring cloud/eureka-client/.idea/
 spring cloud/eureka-client/target/
+spring cloud/mc-movie-eureka-server/.idea/
+spring cloud/mc-movie-provider-feign/.idea/
+spring cloud/mc-movie-provider-feign/target/
