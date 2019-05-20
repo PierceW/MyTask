@@ -13,3 +13,8 @@ spring cloud/eureka-client/target/
 spring cloud/mc-movie-eureka-server/.idea/
 spring cloud/mc-movie-provider-feign/.idea/
 spring cloud/mc-movie-provider-feign/target/
+big-data/hadoop-hdfs/.idea/
+big-data/hadoop-hdfs/target/
+python/kuduan/.idea/
+spring cloud/mv-movie-zuul/.idea/
+big-data/sbt-hdfs/.idea/
