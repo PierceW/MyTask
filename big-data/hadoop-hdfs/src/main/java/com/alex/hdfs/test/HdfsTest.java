@@ -9,7 +9,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @ClassName HdfsTest
@@ -25,36 +27,30 @@ public class HdfsTest {
         try {
 //            copyFile();
 
-//            writeDataToHDFS();
+            writeDataToHDFS();
 
 //            readFile();
-
 //            createDir();
-
 //            renameFileName();
-
 //            deleteFile();
-
 //            exists();
-
 //            fileStatus();
-
 //            getPathAllFile();
-
 //            findLocalPathInfo();
-
-            getHostName();
+//            getHostName();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
+    private static String val = "";
 
     // 写入hdfs
     public static void writeDataToHDFS() throws IOException {
         FileSystem hdfs = getFileSystem();
 
-        byte[] bytes = "hello hdfs\n".getBytes();
+        byte[] bytes = val.getBytes();
         Path dfsPath = new Path("/test.txt");
         FSDataOutputStream outputStream = hdfs.create(dfsPath);
         outputStream.write(bytes);
@@ -82,7 +78,7 @@ public class HdfsTest {
     public static void copyFile() throws IOException {
         FileSystem hdfs = getFileSystem();
 
-        Path srcPath = new Path("D:\\tmp\\test.txt");
+        Path srcPath = new Path("/tmp/test.txt");
         Path dstPath = new Path("/user/alex/test");
 
         hdfs.copyFromLocalFile(srcPath, dstPath);
@@ -131,6 +127,7 @@ public class HdfsTest {
         Path findPath = new Path("/test/test.txt");
         System.out.println("文件是否存在：" + hdfs.exists(findPath));
     }
+
 
     // 查看HDFS文件的信息状态
     public static void fileStatus() throws IOException {
@@ -207,7 +204,7 @@ public class HdfsTest {
     public static FileSystem getFileSystem() throws IOException {
         System.setProperty("HADOOP_USER_NAME", "alex");
         Configuration config = new Configuration();
-        config.set("fs.defaultFS", "hdfs://192.168.70.101:9000");
+        config.set("fs.defaultFS", "hdfs://alex.bigdata.com:9000");
         FileSystem hdfs = FileSystem.get(config);
         return hdfs;
     }
